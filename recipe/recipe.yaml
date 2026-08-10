@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: 833285756f461765500a406416b2c274fba5ad1ea50cb0c93270313d22dd2063,
+    sha256: 833285756f461765500a406416b2c274fba5ad1ea50cb0c93270313d22dd2063
 
 build:
   number: 0
