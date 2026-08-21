@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.10.0"
+  version: "0.11.0"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: 800ac39d7eb72de0609b43cab13de0ecf079945e5b9f9a8fea0b9d2f2a31dab6
+    sha256: 0ac33ea59a0e124f678331096277a5b02ff27a4c7df1d6047ac2cbcbbdf3bfa7
 
 build:
   number: 1
@@ -89,18 +89,18 @@ outputs:
     requirements:
       run:
         - ${{ pin_subpackage("cstar-ocean", exact=True) }}
-        # <2 pins: compiler metapackages 2.0.0 (conda-forge "raw compilers"
-        # migration, 2026-08-13) drop the *_osx-arm64 activation packages,
-        # whose triplet-named wrappers mpich's mpicc/mpicxx hardcode — fresh
-        # osx-arm64 solves get a broken mpicc ("arm64-apple-darwin20.0.0-clang:
-        # command not found"). Unpin once conda-forge mpich is rebuilt against
-        # the new compilers.
-        - c-compiler <2
-        - cxx-compiler <2
-        - fortran-compiler <2
+        - c-compiler
+        - cxx-compiler
+        - fortran-compiler
         - make
         - cmake
+        # mpich-mpicc/mpich-mpifort pin the exact mpich build plus the
+        # activation package providing the compiler its wrappers hardcode;
+        # bare mpich + raw compilers 2.0 can otherwise solve to a broken
+        # mpicc on osx-arm64 (conda-forge/mpich-feedstock#142)
         - mpich
+        - mpich-mpicc
+        - mpich-mpifort
         - netcdf-fortran
         - libpnetcdf
         # ucla-roms Makefiles require GNU-flavored rsync; macOS system rsync lacks the needed flags
@@ -112,6 +112,10 @@ outputs:
           - cstar --version
           - gfortran --version
           - mpirun --version
+          # these exec the wrappers' underlying compilers, catching a broken
+          # mpicc/mpif90 (conda-forge/mpich-feedstock#142)
+          - mpicc --version
+          - mpif90 --version
           - cmake --version
           - make --version
           - rsync --version
