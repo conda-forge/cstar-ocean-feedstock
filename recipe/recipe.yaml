@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.13.0"
+  version: "0.13.1"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: d8333be6bdc2a337bd1557aca43dd9b5ac83f64b115942ed625444ae963920c1
+    sha256: 7d18eb52a06ec2dd74f0451074e8405023df89bde7064ab8f8c1f050a94530d2
 
 build:
   number: 0
