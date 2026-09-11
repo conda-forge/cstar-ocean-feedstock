@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.13.5"
+  version: "0.13.6"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: d5d1dc160642c7a8c31770c24758dd0e2988df0107a3760ac329cc3738b7833a
+    sha256: c731b9c526289166ba6d23cf039050855e06cc96c2f836c050ab4394ddaaee6b
 
 build:
   number: 0
@@ -50,7 +50,7 @@ outputs:
         - pyyaml >=6.0,<7
         - f90nml >=1.4
         - numpy >2.0,<2.4
-        - roms-tools >=4.0.1,<5
+        - roms-tools >=5.0,<6
         - typer <=0.25
 
     tests:
