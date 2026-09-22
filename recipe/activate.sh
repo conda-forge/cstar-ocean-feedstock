@@ -14,5 +14,5 @@
 # The previous value is saved (in a package-specific variable, so it cannot
 # collide with the similar hook cstar-ocean's dev-setup.sh writes) and
 # restored by the paired deactivate.d script.
-export _CSTAR_FORGE_PKG_SAVED_PYTHONNOUSERSITE="${PYTHONNOUSERSITE:-}"
+export _CSTAR_OCEAN_PKG_SAVED_PYTHONNOUSERSITE="${PYTHONNOUSERSITE:-}"
 export PYTHONNOUSERSITE=1

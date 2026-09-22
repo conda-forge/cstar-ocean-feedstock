@@ -1,9 +1,7 @@
 schema_version: 1
 
 context:
-  # DRAFT for the release that carries the merged cstar-forge application
-  # (C-Star 0.15.0): bump version + sha256 on the version PR, keep the run list.
-  version: "0.14.1"
+  version: "0.15.0"
   python_min: "3.12"
 
 recipe:
@@ -12,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: 193b5c7422f7760033366f14ca9ee6e61d75d344a90861aabbf8a2e7c46112a2
+    sha256: 68e23633413f5e4e0e5825b0568894e1b328e3f903f9cf9f9b58232f41dc3916
 
 build:
   number: 0
