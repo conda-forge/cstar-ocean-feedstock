@@ -1,6 +1,8 @@
 schema_version: 1
 
 context:
+  # DRAFT for the release that carries the merged cstar-forge application
+  # (C-Star 0.15.0): bump version + sha256 on the version PR, keep the run list.
   version: "0.14.1"
   python_min: "3.12"
 
@@ -24,7 +26,17 @@ outputs:
       # noarch; not solvable on Windows today (roms-tools -> xesmf/esmf has no
       # win-64 build) but will work there as soon as the deps become available
       noarch: python
-      script: python -m pip install . -vv --no-deps --no-build-isolation
+      script:
+        - python -m pip install . -vv --no-deps --no-build-isolation
+        # activate.d/deactivate.d hooks (recipe/activate.sh has the rationale):
+        # PYTHONNOUSERSITE=1 on activation keeps the env off Python's user-site
+        # (~/.local), which otherwise precedes site-packages on sys.path and
+        # silently shadows it -- a chronic breakage on HPC systems where a module
+        # Python shares ~/.local. Carried over from the cstar-forge recipe, whose
+        # users (the wizard/Jupyter path in particular) hit this; now everyone does.
+        - mkdir -p "$PREFIX/etc/conda/activate.d" "$PREFIX/etc/conda/deactivate.d"
+        - cp "$RECIPE_DIR/activate.sh" "$PREFIX/etc/conda/activate.d/cstar-ocean_pythonnousersite.sh"
+        - cp "$RECIPE_DIR/deactivate.sh" "$PREFIX/etc/conda/deactivate.d/cstar-ocean_pythonnousersite.sh"
       python:
         entry_points:
           - cstar = cstar.cli.cli:main
@@ -52,17 +64,57 @@ outputs:
         - numpy >2.0,<2.4
         - roms-tools >=5.0,<6
         - typer <=0.25
+        # -- the forge domain-generation application (cstar.applications.forge),
+        #    merged from cstar-forge; mirrors [project.dependencies] --
+        - jinja2
+        - pandas
+        - copernicusmarine
+        - gdown
+        - dask
+        - distributed
+        - threadpoolctl
+        - numba
+        - fsspec
+        - kerchunk
+        - nest-asyncio
+        - ujson
+        - fastparquet
+        - xarray
+        # -- the blueprint wizard (cstar.wizard; `cstar forge wizard` runs it
+        #    under voila, `cstar forge copy-notebook` under jupyterlab) --
+        - ipywidgets
+        - voila
+        - jupyterlab
+        # matplotlib-base (not the `matplotlib` GUI metapackage): notebooks
+        # render via the inline/Agg backends; keeps pyqt out of the default install.
+        - matplotlib-base
+        - ipython
+      run_constraints:
+        # copernicusmarine 2.4.x's conda-forge package under-pins click
+        # (>=8.0.4,<8.3) relative to its own wheel metadata (>8.2.0,!=8.3.0,
+        # !=8.3.1), so an unconstrained solve can pick click 8.1.x and fail
+        # `pip check`. Constrain to the intersection; drop once the
+        # copernicusmarine feedstock aligns its pin.
+        - click >8.2.0,<8.3.0
 
     tests:
       - python:
           imports:
             - cstar
+            # forge application (pulls roms-tools/dask/kerchunk: a real dependency
+            # smoke test), catalog, wizard (import-light) and the CLI group
+            - cstar.applications.forge
+            - cstar.catalog
+            - cstar.wizard
+            - cstar.cli.forge
           pip_check: true
           python_version:
             - ${{ python_min }}.*
             - "*"
       - script:
           - cstar --version
+          - cstar forge --help
+          - cstar env register-kernel --help
 
     about:
       homepage: https://www.cworthy.org
