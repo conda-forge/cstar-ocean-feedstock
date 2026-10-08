@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.15.1"
+  version: "0.16.0"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: a39f42caca94175037c9ca4a014ed7b5ac9e39a64a1f6e5de522212ab1015163
+    sha256: 9a0ec0d7b3756c5507504ced1f833ad60c6d49d3a7a7dbc57ce5f904c943d44f
 
 build:
   number: 0
@@ -59,7 +59,9 @@ outputs:
         - pyyaml >=6.0,<7
         - f90nml >=1.4
         - numpy >2.0,<2.4
-        - roms-tools >=5.1,<6
+        # >=5.1.1: first roms-tools without the xarray<2025.8 cap, so the solver
+        # can reach xarray 2026.9 (below)
+        - roms-tools >=5.1.1,<6
         - typer <=0.25
         # -- the forge domain-generation application (cstar.applications.forge),
         #    merged from cstar-forge; mirrors [project.dependencies] --
@@ -76,7 +78,11 @@ outputs:
         - nest-asyncio
         - ujson
         - fastparquet
-        - xarray
+        # >=2026.9: pydata/xarray#11622 fixes the netCDF4-backend lock-order
+        # deadlock that froze forge input generation mid-save_mfdataset (the
+        # xarray_lockfix shim still in 0.16.0 covers only the lock leak, not the
+        # ABBA order). Stricter than pyproject's bare `xarray` on purpose.
+        - xarray >=2026.9
         # -- the blueprint wizard (cstar.wizard; `cstar forge wizard` runs it
         #    under voila, `cstar forge copy-notebook` under jupyterlab) --
         - ipywidgets
@@ -89,10 +95,10 @@ outputs:
       run_constraints:
         # copernicusmarine 2.4.x's conda-forge package under-pins click
         # (>=8.0.4,<8.3) relative to its own wheel metadata (>8.2.0,!=8.3.0,
-        # !=8.3.1), so an unconstrained solve can pick click 8.1.x and fail
-        # `pip check`. Constrain to the intersection; drop once the
-        # copernicusmarine feedstock aligns its pin.
-        - click >8.2.0,<8.3.0
+        # !=8.3.1), so a solve landing on 2.4.x can pick click 8.1.x and fail
+        # `pip check`. 2.5.0 aligned the conda pin; this stays until 2.4.x is
+        # no longer a plausible solve (nothing here floors copernicusmarine).
+        - click >8.2.0,!=8.3.0,!=8.3.1
 
     tests:
       - python:
@@ -154,6 +160,9 @@ outputs:
         - libpnetcdf
         # ucla-roms Makefiles require GNU-flavored rsync; macOS system rsync lacks the needed flags
         - rsync
+        # local-launcher walltimes (max_walltime / force_kill_timeout) run the step
+        # under GNU `timeout`; macOS has none (0.16.0 also accepts Homebrew's gtimeout)
+        - coreutils
 
     tests:
       - script:
@@ -168,6 +177,7 @@ outputs:
           - cmake --version
           - make --version
           - rsync --version
+          - timeout --version
           - nf-config --version
 
     about:
