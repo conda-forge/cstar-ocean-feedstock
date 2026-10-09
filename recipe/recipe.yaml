@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.16.0"
+  version: "0.16.1"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: 9a0ec0d7b3756c5507504ced1f833ad60c6d49d3a7a7dbc57ce5f904c943d44f
+    sha256: d20782b0c38660210b51fb838fd861034f99132ee246699f495194f11da9c02d
 
 build:
   number: 0
@@ -63,6 +63,8 @@ outputs:
         # can reach xarray 2026.9 (below)
         - roms-tools >=5.1.1,<6
         - typer <=0.25
+        # shell detection for `cstar env shell-init`
+        - shellingham >=1.3
         # -- the forge domain-generation application (cstar.applications.forge),
         #    merged from cstar-forge; mirrors [project.dependencies] --
         - jinja2
@@ -79,9 +81,7 @@ outputs:
         - ujson
         - fastparquet
         # >=2026.9: pydata/xarray#11622 fixes the netCDF4-backend lock-order
-        # deadlock that froze forge input generation mid-save_mfdataset (the
-        # xarray_lockfix shim still in 0.16.0 covers only the lock leak, not the
-        # ABBA order). Stricter than pyproject's bare `xarray` on purpose.
+        # deadlock that froze forge input generation mid-save_mfdataset
         - xarray >=2026.9
         # -- the blueprint wizard (cstar.wizard; `cstar forge wizard` runs it
         #    under voila, `cstar forge copy-notebook` under jupyterlab) --
@@ -118,6 +118,7 @@ outputs:
           - cstar --version
           - cstar forge --help
           - cstar env register-kernel --help
+          - cstar env shell-init --help
 
     about:
       homepage: https://www.cworthy.org
