@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.17.0"
+  version: "0.18.0"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: 66f85f59488a313b151a8ca7ce8bc79251a265b6cb6423833d1605646b392610
+    sha256: ed8f0147281c51575a4cf6dd6f115f13621ccee8124cff2dc07cfce9428d20cc
 
 build:
   number: 0
@@ -59,11 +59,12 @@ outputs:
         - pyyaml >=6.0,<7
         - f90nml >=1.4
         - numpy >2.0,<2.4
-        # >=5.2.1: 5.2.0 is the first roms-tools that acts on an ESPER source's
-        # salinity conditioning (5.1.x accepts the key and silently ignores it)
-        # and 5.2.1 adds the nested CDR `domains=` API; all 5.2.x are free of the
-        # old xarray<2025.8 cap, so the solver can reach xarray 2026.9 (below)
-        - roms-tools >=5.2.1,<6
+        # >=5.3.0: CDR metrics sum over interior rho points only, which
+        # `UpscaledCDR`'s closure across nested domains needs, and river forcing
+        # keeps the discharge of rivers that share a cell (5.2.1 added the nested
+        # CDR `domains=` API, 5.2.2 Python 3.14 support); all 5.2+ are free of
+        # the old xarray<2025.8 cap, so the solver can reach xarray 2026.9 (below)
+        - roms-tools >=5.3.0,<6
         - typer <=0.25
         # shell detection for `cstar env shell-init`
         - shellingham >=1.3
@@ -79,7 +80,6 @@ outputs:
         - numba
         - fsspec
         - kerchunk
-        - nest-asyncio
         - ujson
         - fastparquet
         # >=2026.9: pydata/xarray#11622 fixes the netCDF4-backend lock-order
@@ -122,6 +122,7 @@ outputs:
           - cstar env register-kernel --help
           - cstar env shell-init --help
           - cstar run --help
+          - cstar init --help
 
     about:
       homepage: https://www.cworthy.org
@@ -162,6 +163,10 @@ outputs:
         - mpich-mpifort
         - netcdf-fortran
         - libpnetcdf
+        # ParallelIO's CMake configure calls find_package(PkgConfig); without it
+        # the ROMS build fails on a machine with no system pkg-config (0.17.0
+        # users on a clean Linux box hit this)
+        - pkg-config
         # ucla-roms Makefiles require GNU-flavored rsync; macOS system rsync lacks the needed flags
         - rsync
         # local-launcher walltimes (max_walltime / force_kill_timeout) run the step
@@ -183,6 +188,7 @@ outputs:
           - rsync --version
           - timeout --version
           - nf-config --version
+          - pkg-config --version
 
     about:
       homepage: https://www.cworthy.org
