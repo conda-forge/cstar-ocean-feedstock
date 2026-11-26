@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "0.19.0"
+  version: "0.19.1"
   python_min: "3.12"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/c/cstar-ocean/cstar_ocean-${{ version }}.tar.gz
-    sha256: 6cfc7c7893b07164379631c006f3119b57e84cbef7e994977c76267a7df3d7d6
+    sha256: 0a75e9729f31dde4c83c461547723fde847b9129dc7c063be06666a08fd05bae
 
 build:
   number: 0
@@ -118,6 +118,9 @@ outputs:
             - cstar.applications.forge
             - cstar.catalog
             - cstar.wizard
+            # the blueprint wizard, split into card and editor modules in 0.19.1
+            # (import-light: loads every module of it, no ipywidgets/roms-tools)
+            - cstar.wizard.wizard
             - cstar.cli.forge
           pip_check: true
           python_version:
